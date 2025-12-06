@@ -12,6 +12,7 @@ from .schemas.user import Token, User
 from .routers.users import router
 from .routers.tasks import router as tasks_router
 from .routers.predictions import router as predictions_router
+from .routers.reports import router as reports_router
 from .dependencies import get_db
 
 app = FastAPI()
@@ -28,12 +29,10 @@ app.add_middleware(
 # Mount static files for uploads
 app.mount("/uploads", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "..", "uploads")), name="uploads")
 
-# Mount static files for processed images
-app.mount("/processed_images", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "..", "processed_images")), name="processed_images")
-
 app.include_router(router, prefix="/api", tags=["users"])
 app.include_router(tasks_router, prefix="/api", tags=["tasks"])
 app.include_router(predictions_router, prefix="/api", tags=["predictions"])
+app.include_router(reports_router, prefix="/api/reports", tags=["reports"])
 
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
