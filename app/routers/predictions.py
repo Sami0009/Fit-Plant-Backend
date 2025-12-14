@@ -1,17 +1,11 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
-import tensorflow as tf
-from tensorflow.keras.preprocessing import image
-from PIL import Image
-import numpy as np
-import cv2
 import os
 import uuid
 import logging
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import BatchNormalization, Dense, Dropout
-from tensorflow.keras import regularizers
-from tensorflow.keras.optimizers import Adamax
+from PIL import Image
+import numpy as np
+import cv2
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -24,36 +18,44 @@ model = None
 def get_model():
     global model
     if model is None:
-        # Load your trained model
-        img_shape = (224, 224, 3)
-        class_count = 38
+        try:
+            import tensorflow as tf
+            from tensorflow.keras.models import Sequential
+            from tensorflow.keras.layers import BatchNormalization, Dense, Dropout
+            from tensorflow.keras import regularizers
+            # Load your trained model
+            img_shape = (224, 224, 3)
+            class_count = 38
 
-        base_model = tf.keras.applications.EfficientNetB3(
-            include_top=False,
-            weights="imagenet",
-            input_shape=img_shape,
-            pooling='max'
-        )
+            base_model = tf.keras.applications.EfficientNetB3(
+                include_top=False,
+                weights="imagenet",
+                input_shape=img_shape,
+                pooling='max'
+            )
 
-        model = Sequential([
-            base_model,
-            BatchNormalization(axis=-1, momentum=0.99, epsilon=0.001),
-            Dense(256,
-                  kernel_regularizer=regularizers.l2(0.016),
-                  activity_regularizer=regularizers.l1(0.006),
-                  bias_regularizer=regularizers.l1(0.006),
-                  activation='relu'),
-            Dropout(rate=0.45, seed=123),
-            Dense(class_count, activation='softmax')
-        ])
+            model = Sequential([
+                base_model,
+                BatchNormalization(axis=-1, momentum=0.99, epsilon=0.001),
+                Dense(256,
+                      kernel_regularizer=regularizers.l2(0.016),
+                      activity_regularizer=regularizers.l1(0.006),
+                      bias_regularizer=regularizers.l1(0.006),
+                      activation='relu'),
+                Dropout(rate=0.45, seed=123),
+                Dense(class_count, activation='softmax')
+            ])
 
-        model_path = "models/efficientnetb3-Plant Village Disease-weights.h5"
-        if os.path.exists(model_path):
-            model.load_weights(model_path)
-            logger.info("Model loaded successfully.")
-        else:
-            logger.error(f"Model file not found: {model_path}")
-            raise FileNotFoundError(f"Model file not found: {model_path}")
+            model_path = "models/efficientnetb3-Plant Village Disease-weights.h5"
+            if os.path.exists(model_path):
+                model.load_weights(model_path)
+                logger.info("Model loaded successfully.")
+            else:
+                logger.error(f"Model file not found: {model_path}")
+                model = None  # Set to None to indicate failure
+        except Exception as e:
+            logger.error(f"Failed to load model: {str(e)}")
+            model = None
     return model
 
 # Define class names with user-friendly mapping
@@ -198,12 +200,22 @@ async def predict(file: UploadFile = File(...)):
             )
 
         # Proceed with preprocessing and prediction
+        from tensorflow.keras.preprocessing import image
         img = image.load_img(save_path, target_size=(224, 224), color_mode="rgb")
         img_array = image.img_to_array(img)
         img_array = np.expand_dims(img_array, axis=0)
 
         # Predict
-        predictions = get_model().predict(img_array)
+        model_instance = get_model()
+        if model_instance is None:
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "status": "error",
+                    "message": "Model not available. Please check server configuration."
+                }
+            )
+        predictions = model_instance.predict(img_array)
         predicted_index = np.argmax(predictions, axis=1)[0]
         predicted_class = class_names[predicted_index]
         confidence = float(np.max(predictions))
