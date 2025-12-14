@@ -24,6 +24,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def read_root():
+    return {"message": "API is running"}
+
 # Mount static files for uploads
 uploads_dir = os.path.join(os.path.dirname(__file__), "..", "uploads")
 if os.path.exists(uploads_dir):
