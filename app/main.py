@@ -14,11 +14,17 @@ from .routers.workers import router as workers_router
 from .dependencies import get_db
 
 app = FastAPI()
-
+origins = [
+    "https://plant-disease-portal-r4b2.vercel.app",   # your Vercel frontend
+    "https://plantlens.online",
+    "https://www.plantlens.online",
+    "https://api.plantlens.online",
+    "http://localhost:8000",                         # optional for local dev
+]
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Frontend origin
+    allow_origins= origins,  # Frontend origin
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

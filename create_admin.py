@@ -1,5 +1,5 @@
 from app.database import SessionLocal
-from app.crud.user import create_user
+from app.crud.user import create_user,get_user_by_email
 from app.schemas.user import UserCreate
 
 db = SessionLocal()
@@ -13,8 +13,11 @@ admin = UserCreate(
     password="adminpass",
     confirm_password="adminpass"
 )
-
-create_user(db, admin)
+if get_user_by_email(db, "admin@example.com"):
+    print("Admin already exists")
+else:
+    create_user(db, admin)
+#create_user(db, admin)
 
 db.close()
 

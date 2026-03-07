@@ -46,7 +46,7 @@ def get_model():
                 Dense(class_count, activation='softmax')
             ])
 
-            model_path = "models/efficientnetb3-Plant Village Disease-weights.h5"
+            model_path = "models/efficientnetb3-PlantVillageDisease-weights.h5"
             if os.path.exists(model_path):
                 model.load_weights(model_path)
                 logger.info("Model loaded successfully.")
