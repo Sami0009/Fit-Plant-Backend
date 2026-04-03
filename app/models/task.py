@@ -20,9 +20,9 @@ class Task(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
-    description = Column(String)
-    crop_type = Column(String)
-    due_date = Column(DateTime)
+    description = Column(String, nullable=True)
+    crop_type = Column(String, nullable=True)
+    due_date = Column(DateTime, nullable=True)
     assigned_to = Column(Integer, ForeignKey("users.id"))
     status = Column(Enum(TaskStatus), default=TaskStatus.pending)
     severity = Column(Enum(TaskSeverity), default=TaskSeverity.low)

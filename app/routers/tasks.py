@@ -7,9 +7,11 @@ from ..schemas.task import Task, TaskCreate, TaskUpdate, TaskWithWorker, Paginat
 from ..auth.auth import get_current_admin, get_current_user
 from ..models.user import User
 from ..models.task import Task as TaskModel
+from typing import Optional
 import os
 import shutil
 import datetime
+from datetime import timedelta
 
 router = APIRouter()
 
@@ -53,12 +55,15 @@ def read_single_task(task_id: int, db: Session = Depends(get_db), current_user =
         updated_at=task.updated_at,
         worker_name=task.assigned_user.full_name if task.assigned_user else "",
         worker_image_path=task.assigned_user.image_path if task.assigned_user else None,
-        image_path=task.image_path,
-        plant_condition=task.plant_condition
+        image_path=task.image_path
     )
 
 @router.post("/tasks/", response_model=Task)
 def create_new_task(task: TaskCreate, db: Session = Depends(get_db), current_user = Depends(get_current_admin)):
+    # Default due_date to 10 days from now when omitted
+    if task.due_date is None:
+        task = TaskCreate(**{**task.dict(), "due_date": datetime.datetime.utcnow() + timedelta(days=10)})
+
     # Check if assigned_to is a worker
     assigned_user = db.query(User).filter(User.id == task.assigned_to, User.role == "worker").first()
     if not assigned_user:
@@ -78,7 +83,7 @@ def update_existing_task(task_id: int, task_update: TaskUpdate, db: Session = De
     return db_task
 
 @router.put("/tasks/{task_id}/complete", response_model=Task)
-def complete_task_endpoint(task_id: int, plant_condition: str = Form(...), file: UploadFile = File(...), db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+def complete_task_endpoint(task_id: int, file: UploadFile = File(...), db: Session = Depends(get_db), current_user = Depends(get_current_user)):
     if current_user.role != "worker":
         raise HTTPException(status_code=403, detail="Only workers can complete tasks")
     
@@ -102,7 +107,7 @@ def complete_task_endpoint(task_id: int, plant_condition: str = Form(...), file:
         shutil.copyfileobj(file.file, buffer)
     
     # Complete the task
-    db_task = complete_task(db, task_id=task_id, image_path=file_path, plant_condition=plant_condition, worker_id=current_user.id)
+    db_task = complete_task(db, task_id=task_id, image_path=file_path, worker_id=current_user.id)
     if db_task is None:
         raise HTTPException(status_code=404, detail="Task not found or already completed")
     # Add image_name to response

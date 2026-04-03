@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from datetime import datetime
 from typing import Optional
 import enum
@@ -16,12 +16,30 @@ class TaskSeverity(str, enum.Enum):
 
 class TaskBase(BaseModel):
     title: str
-    description: str
-    crop_type: str
-    due_date: datetime
+    description: Optional[str] = None
+    crop_type: Optional[str] = None
+    due_date: Optional[datetime] = None
     assigned_to: int
     status: TaskStatus = TaskStatus.pending
-    severity: TaskSeverity = TaskSeverity.low
+    severity: Optional[TaskSeverity] = TaskSeverity.low
+
+    @validator("description", "crop_type", pre=True, always=False)
+    def empty_str_to_none(cls, v):
+        if v == "":
+            return None
+        return v
+
+    @validator("due_date", pre=True, always=False)
+    def parse_due_date(cls, v):
+        if v == "" or v is None:
+            return None
+        return v
+
+    @validator("severity", pre=True, always=False)
+    def parse_severity(cls, v):
+        if v == "" or v is None:
+            return TaskSeverity.low
+        return v
 
 class TaskCreate(TaskBase):
     pass
@@ -35,7 +53,6 @@ class TaskUpdate(BaseModel):
     status: Optional[TaskStatus] = None
     severity: Optional[TaskSeverity] = None
     image_path: Optional[str] = None
-    plant_condition: Optional[str] = None
 
 class Task(TaskBase):
     id: int
@@ -43,7 +60,6 @@ class Task(TaskBase):
     created_at: datetime
     updated_at: datetime
     image_path: Optional[str] = None
-    plant_condition: Optional[str] = None
     image_name: Optional[str] = None
 
     class Config:
@@ -52,19 +68,18 @@ class Task(TaskBase):
 class TaskWithWorker(BaseModel):
     id: int
     title: str
-    description: str
-    crop_type: str
-    due_date: datetime
+    description: Optional[str] = None
+    crop_type: Optional[str] = None
+    due_date: Optional[datetime] = None
     assigned_to: int
     status: TaskStatus
-    severity: TaskSeverity
+    severity: Optional[TaskSeverity] = None
     created_by: int
     created_at: datetime
     updated_at: datetime
     worker_name: str
     worker_image_path: Optional[str] = None
     image_path: Optional[str] = None
-    plant_condition: Optional[str] = None
 
     class Config:
         from_attributes = True

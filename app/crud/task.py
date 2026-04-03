@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy.orm import Session, joinedload
 from ..models.task import Task
 from ..schemas.task import TaskCreate, TaskUpdate, TaskWithWorker
@@ -40,8 +41,7 @@ def get_tasks(db: Session, page: int = 1, limit: int = 10, search: str = None, s
             updated_at=task.updated_at,
             worker_name=task.assigned_user.full_name if task.assigned_user else "",
             worker_image_path=task.assigned_user.image_path if task.assigned_user else None,
-            image_path=task.image_path,
-            plant_condition=task.plant_condition
+            image_path=task.image_path
         )
         for task in tasks
     ]
@@ -72,12 +72,11 @@ def update_task(db: Session, task_id: int, task_update: TaskUpdate):
         db.refresh(db_task)
     return db_task
 
-def complete_task(db: Session, task_id: int, image_path: str, plant_condition: str, worker_id: int):
+def complete_task(db: Session, task_id: int, image_path: str, worker_id: int):
     db_task = db.query(Task).filter(Task.id == task_id, Task.assigned_to == worker_id, Task.status == "pending").first()
     if db_task:
         db_task.status = "completed"
         db_task.image_path = image_path
-        db_task.plant_condition = plant_condition
         db.commit()
         db.refresh(db_task)
     return db_task
