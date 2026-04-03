@@ -25,7 +25,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # ---- Fetch Only the Model File from GitHub (LFS) ----
 RUN git init model_repo \
     && cd model_repo \
-    && git remote add origin https://${GITHUB_TOKEN}@github.com/Sami0009/Fit-Plant-Backend.git \
+    && git remote add origin https://github.com/Sami0009/Fit-Plant-Backend.git \
     && git config core.sparseCheckout true \
     && echo "models/efficientnetb3-PlantVillageDisease-weights.h5" >> .git/info/sparse-checkout \
     && git pull origin main \
