@@ -41,7 +41,10 @@ def get_tasks(db: Session, page: int = 1, limit: int = 10, search: str = None, s
             updated_at=task.updated_at,
             worker_name=task.assigned_user.full_name if task.assigned_user else "",
             worker_image_path=task.assigned_user.image_path if task.assigned_user else None,
-            image_path=task.image_path
+            image_path=task.image_path,
+            land_name=task.land_name,
+            watering=task.watering,
+            pesticides=task.pesticides
         )
         for task in tasks
     ]
@@ -107,7 +110,10 @@ def get_tasks_by_admin(db: Session, admin_id: int, skip: int = 0, limit: int = 1
             worker_name=task.assigned_user.full_name if task.assigned_user else "",
             worker_image_path=task.assigned_user.image_path if task.assigned_user else None,
             image_path=task.image_path,
-            plant_condition=task.plant_condition
+            plant_condition=task.plant_condition,
+            land_name=task.land_name,
+            watering=task.watering,
+            pesticides=task.pesticides
         )
         for task in tasks
     ]

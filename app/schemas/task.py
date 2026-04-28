@@ -22,6 +22,9 @@ class TaskBase(BaseModel):
     assigned_to: int
     status: TaskStatus = TaskStatus.pending
     severity: Optional[TaskSeverity] = TaskSeverity.low
+    land_name: Optional[str] = None
+    watering: Optional[bool] = None
+    pesticides: Optional[str] = None
 
     @validator("description", "crop_type", pre=True, always=False)
     def empty_str_to_none(cls, v):
@@ -53,6 +56,9 @@ class TaskUpdate(BaseModel):
     status: Optional[TaskStatus] = None
     severity: Optional[TaskSeverity] = None
     image_path: Optional[str] = None
+    land_name: Optional[str] = None
+    watering: Optional[bool] = None
+    pesticides: Optional[str] = None
 
 class Task(TaskBase):
     id: int
@@ -80,6 +86,9 @@ class TaskWithWorker(BaseModel):
     worker_name: str
     worker_image_path: Optional[str] = None
     image_path: Optional[str] = None
+    land_name: Optional[str] = None
+    watering: Optional[bool] = None
+    pesticides: Optional[str] = None
 
     class Config:
         from_attributes = True

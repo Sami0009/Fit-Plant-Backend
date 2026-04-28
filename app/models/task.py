@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from ..database import Base
 import enum
+import sqlalchemy as sa
 from datetime import datetime
 
 class TaskStatus(str, enum.Enum):
@@ -31,6 +32,10 @@ class Task(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     image_path = Column(String, nullable=True)
     plant_condition = Column(String, nullable=True)
+
+    land_name = Column(String, nullable=True)
+    watering = Column(sa.Boolean, nullable=True)
+    pesticides = Column(String, nullable=True)
 
     # Relationships
     assigned_user = relationship("User", foreign_keys=[assigned_to])
