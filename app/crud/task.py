@@ -59,7 +59,10 @@ def create_task(db: Session, task: TaskCreate, created_by: int):
         assigned_to=task.assigned_to,
         status=task.status,
         severity=task.severity,
-        created_by=created_by
+        created_by=created_by,
+        land_name=task.land_name,
+        watering=task.watering,
+        pesticides=task.pesticides
     )
     db.add(db_task)
     db.commit()
